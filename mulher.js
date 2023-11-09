@@ -8,7 +8,7 @@ const porta = 3333 //criação da rota
 function mostraMulher(request, response) {
     response.json({
         nome: 'Carol Pinheiro',
-        imagem: 'carol.jpg',
+        imagem: 'https://avatars.githubusercontent.com/u/43106712?v=4',
         minibio: 'Aprendiz de dev fullstack e cheia de sonhos'
     })
 }

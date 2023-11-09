@@ -1,46 +1,34 @@
 const express = require("express")
-const router = express.Router
+const router = express.Router()
 const { v4: uuidv4 } = require('uuid')
 
+const conectaBancoDeDados = require('./bancoDeDados') //ligando o bd ao arquivo bd
+conectaBancoDeDados() //chamando a função que conecta o bd
+
+const Mulher = require('./mulherModel')
 
 const app = express()
+app.use(express.json())//a partir de agora os arquivos estarão em formato JSON
 const porta = 3333
 
-//criaçao de lista inicial de mulheres
-
-const mulheres = [
-    {
-        id: '1',
-        nome: 'Carol Pinheiro',
-        imagem: 'carol.jpg',
-        minibio: 'Aprendiz de dev fullstack e cheia de sonhos'
-    },
-
-    {
-        id: '1',
-        nome: 'Ada Lovelace',
-        imagem: 'ada.jpg',
-        minibio: 'Instrutora'
-    },
-
-    {
-        id: '3',
-        nome: 'Grace Hopper',
-        imagem: 'grace.jpg',
-        minibio: 'Instrutora'
-    }
-]
 
 //GET
-function mostraMulheres(request, response) {
-    response.json(mulheres)
+async function mostraMulheres(request, response) {
+   try {
+    const mulheresVindasdoBancoDeDados = await Mulher.find()
+
+    response.json(mulheresVindasdoBancoDeDados)
+   }catch (erro) {
+    console.log(erro)
+   }
+    
 }
 
 //POST
 function criaMulher(request, response) {
     const novaMulher = {
         id: uuidv4(),
-        nome: request.body.name,
+        nome: request.body.nome,
         imagem: request.body.imagem,
         minibio: request.body.minibio
     }
@@ -50,12 +38,54 @@ function criaMulher(request, response) {
     response.json(mulheres)
 }
 
+//PATCH
+    function corrigeMulher (request, response) {
+        function encontraMulher (mulher) {
+            if (mulher.id=== request.params.id) {
+                return mulher
+            }
+        }
+
+        const mulherEncontrada = mulheres.find(encontraMulher)
+
+        if (request.body.nome) {
+            mulherEncontrada.nome = request.body.nome
+        }
+
+        if (request.body.minibio) {
+            mulherEncontrada.minibio = request.body.minibio
+        }
+
+        if (request.body.imagem) {
+            mulherEncontrada = request.body.imagem
+        }
+
+        response.json(mulheres)
+    }
+
+//DELETE
+
+function deletaMulher(request, response) {
+    function todasMenosEla(mulher) {
+        if(mulher.id !== request.params.id) {
+            return mulher
+        }
+    }
+
+    const mulheresQueFicam = mulheres.filter(todasMenosEla)
+
+    response.json(mulheresQueFicam)
+}
+
 //PORTA
 function mostraPorta() {
-    console.log("Servidor cirado e rodando na porta ", porta)
+    console.log("Servidor criado e rodando na porta ", porta)
 
 }
 
-app.use(router.length('/mulheres', mostraMulheres)) //config rota GET /mulheres
+app.use(router.get('/mulheres', mostraMulheres)) //config rota GET /mulheres
 app.use(router.post('/mulheres', criaMulher)) //config rota POST
+app.use(router.patch('/mulheres/:id', corrigeMulher))//config rota Patch
+app.use(router.delete('/mulheres/:id', deletaMulher))//config rota Delete
+
 app.listen(porta, mostraPorta) //servidor ouvindo 
